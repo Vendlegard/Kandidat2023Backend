@@ -1,0 +1,8 @@
+# Django project gitignore
+*.pyc
+__pycache__/
+media/
+staticfiles/
+db.sqlite3
+/Kandidat2023Backend/settings.py
+/.idea/
