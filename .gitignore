@@ -1,8 +1,0 @@
-/Kandidat2023Backend/settings.py
-/venv/
-*.pyc
-__pycache__/
-media/
-staticfiles/
-db.sqlite3
-/.idea/
