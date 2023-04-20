@@ -36,14 +36,18 @@ def create_user(request):
     data = json.loads(request.body.decode('utf-8'))
     email = data.get('email')
     password = data.get('password')
-    print(f"Email: {email}, Password: {password}")
+    first_name = data.get('firstName')
+    last_name = data.get('lastName')
+    university = data.get('university')
+    education = data.get('education')
+    print(f"Email: {email}, Password: {password}", f"First name: {first_name}, Last name: {last_name}", f"University: {university}, Education: {education}")
     hashed_password, salt = hash_password(password)
     print(f"Hashed password: {hashed_password}, Salt: {salt}")
     response = "Hello World!"
     with connection.cursor() as cursor:
         cursor.execute(
-            "INSERT INTO  User(email, password_hash, salt) VALUES (%s, %s, %s)",
-            [email, hashed_password, salt]
+            "INSERT INTO  User(email, password_hash, salt, firstName, lastName, University, Education) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            [email, hashed_password, salt, first_name, last_name, university, education]
         )
     return JsonResponse({'message': response})
 
