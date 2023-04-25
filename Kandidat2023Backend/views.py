@@ -126,11 +126,16 @@ def data_view(request):
 def fetch_jobs(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM Job")
+
+        cursor.execute("SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+                       "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR"
+                         )
         columns = [col[0] for col in cursor.description]
         job_list = [
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+        print(job_list[0])
     return JsonResponse({'jobs': job_list }, safe=False)
 
 @csrf_exempt
