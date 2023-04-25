@@ -104,35 +104,34 @@ def send_back_auth(request):
         with connection.cursor() as cursor:
             cursor.execute("SELECT userID, userEmail, firstName, lastName, university, education FROM User WHERE userEmail=%s", [email])
             row = cursor.fetchone()
+            userDataJson = {
+                'userID': row[0],
+                'userEmail': row[1],
+                'firstName': row[2],
+                'lastName': row[3],
+                'university': row[4],
+                'education': row[5]
+            }
             cursor.execute("SELECT token FROM Token WHERE userID=%s", [row[0]])
             token = cursor.fetchone()
             somethingToReturn = token[0]
     else:
         somethingToReturn = "User not authenticated"
-    return JsonResponse({'message_token': somethingToReturn, 'message_userInfo': 'Success'}) #jag la till success heter nåt annt på elins
+    return JsonResponse({'message_token': somethingToReturn, 'userInfo': userDataJson}) #jag la till success heter nåt annt på elins
 
 
 def data_view(request):
     print("testar data_view")
 
 def fetch_jobs(request):
-
     with connection.cursor() as cursor:
-        cursor.execute("SELECT jobName, employerName "
-                       "FROM Job LEFT OUTER JOIN Employer "
-                       "ON Job.orgNR = Employer.orgNR;")
-        rows = cursor.fetchall()
-        for row in rows:
-            print("första printen \n", row)
-
-    rowslist = list(rows)
-    #jsonStr = json.dumps(rowslist) ## den här fuckar upp och ger 126 lång lista, fattar inte varför
-    #ser dock likadan ut så är skumt
-    # print("andra printen \n", "här är jsonStr: ", jsonStr)
-    #print("tredje printen \n", "vad är detta för typ: ", type(jsonStr))
-
-
-    return JsonResponse({'message': rowslist}, safe=False)
+        cursor.execute("SELECT * FROM Job")
+        columns = [col[0] for col in cursor.description]
+        job_list = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+    return JsonResponse({'jobs': job_list }, safe=False)
 
 @csrf_exempt
 def write_comp_and_int(request):
