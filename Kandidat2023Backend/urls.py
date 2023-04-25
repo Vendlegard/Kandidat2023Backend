@@ -19,7 +19,8 @@ from .views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/testResponse', create_user, name='data'),
+    path('api/fetchJobs', fetch_jobs, name='data'),
     path('api/register',register_user, name='register'),
     path('api/authenticate',send_back_auth, name='authenticate'),
-    path('api/fetchJobs', fetchJobs, name='fetchJobs'),
+    path('api/writeCompAndInt',write_comp_and_int, name='writeCompAndInt')
 ]
