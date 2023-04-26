@@ -188,21 +188,23 @@ def write_comp_and_int(request):
                 f"INSERT INTO UserCompetence(userID, compID) VALUES ({userToSelectVariable}, {compToAddVariable})"
             )
 
-
-
-
-
-
     return JsonResponse({'message': data}, safe=False)
 
 
 
 @csrf_exempt
-def liked_job(request):
+def write_liked_job(request):
     data = json.loads(request.body.decode('utf-8'))
     userID = data.get('id')
     likes = data.get('liked')
 
     print("The user with id ", userID, "and the likes are", likes)
 
+    with connection.cursor() as cursor:
+        cursor.execute(
+        f"INSERT INTO UserLikes(userID, jobID) VALUES ({userID}, {likes})"
+        )
+
     return JsonResponse({'message': "Something to return from liked job"}, safe=False)
+
+
