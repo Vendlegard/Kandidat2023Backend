@@ -14,7 +14,7 @@ def generate_random_string(n):
     return ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=n))
 
 def generate_jwt(user_id):
-    exp_time = datetime.utcnow() + timedelta(hours=1)
+    exp_time = datetime.utcnow() + timedelta(hours=300)
 
     payload = {
         'user_id': user_id,
@@ -117,7 +117,29 @@ def send_back_auth(request):
             somethingToReturn = token[0]
     else:
         somethingToReturn = "User not authenticated"
-    return JsonResponse({'message_token': somethingToReturn, 'userInfo': userDataJson}) #jag la till success heter nåt annt på elins
+    return JsonResponse({'token': somethingToReturn, 'userInfo': userDataJson}) #jag la till success heter nåt annt på elins
+
+@csrf_exempt
+def auth_with_token(request):
+    data = json.loads(request.body.decode('utf-8'))
+    token = data.get('token')
+    with connection.cursor() as cursor: ##kollar inte om den är expired men sak samma detta fixar vi.
+        cursor.execute("SELECT userID FROM Token WHERE token=%s", [token])
+        row = cursor.fetchone()
+        if not row:
+            return None
+        userID = row[0]
+        cursor.execute("SELECT userID, userEmail, firstName, lastName, university, education FROM User WHERE userID=%s", [userID])
+        row = cursor.fetchone()
+        userDataJson = {
+            'userID': row[0],
+            'userEmail': row[1],
+            'firstName': row[2],
+            'lastName': row[3],
+            'university': row[4],
+            'education': row[5]
+        }
+        return JsonResponse({'userInfo': userDataJson})
 
 
 def data_view(request):
@@ -135,7 +157,6 @@ def fetch_jobs(request):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-        print(job_list[0])
     return JsonResponse({'jobs': job_list }, safe=False)
 
 @csrf_exempt
@@ -173,3 +194,15 @@ def write_comp_and_int(request):
 
 
     return JsonResponse({'message': data}, safe=False)
+
+
+
+@csrf_exempt
+def liked_job(request):
+    data = json.loads(request.body.decode('utf-8'))
+    userID = data.get('id')
+    likes = data.get('liked')
+
+    print("The user with id ", userID, "and the likes are", likes)
+
+    return JsonResponse({'message': "Something to return from liked job"}, safe=False)
