@@ -202,5 +202,31 @@ def liked_job(request):
     data = json.loads(request.body.decode('utf-8'))
     userID = data.get('id')
     likes = data.get('liked')
+    response = "job was liked"
 
-    return JsonResponse({'message': "Something to return from liked job"}, safe=False)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO UserLikesJob(userID, jobID) VALUES (%s, %s)", [userID, likes])
+    except:
+        response = "job was already liked"
+
+
+
+
+    return JsonResponse({'message': response}, safe=False)
+
+
+@csrf_exempt
+def disliked_job(request):
+    data = json.loads(request.body.decode('utf-8'))
+    userID = data.get('id')
+    dislikes = data.get('disliked')
+    response = "job was liked"
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO UserNotLikeJob(userID, jobID) VALUES (%s, %s)", [userID, dislikes])
+    except:
+        response = "job was already liked"
+
+    return JsonResponse({'message': response}, safe=False)
