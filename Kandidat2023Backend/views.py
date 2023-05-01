@@ -157,7 +157,6 @@ def fetch_jobs(request):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-        print(job_list[0])
     return JsonResponse({'jobs': job_list }, safe=False)
 
 @csrf_exempt
@@ -206,42 +205,4 @@ def liked_job(request):
 
     print("The user with id ", userID, "and the likes are", likes)
 
-    alreadyLiked = "job was liked"
-
-
-    try :
-        with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO UserLikesJob(userID, jobID) VALUES (%s, %s)", [userID, likes])
-            cursor.execute("SELECT * FROM UserLikesJob")
-            row = cursor.fetchall()
-            print(row)
-    except:
-        alreadyLiked = "You have already liked this job"
-
-    return JsonResponse({'message': alreadyLiked}, safe=False)
-
-
-@csrf_exempt
-def disliked_job(request):
-    data = json.loads(request.body.decode('utf-8'))
-    userID = data.get('id')
-    dislike = data.get('disliked')
-
-    print("The user with id ", userID, "and the dislikes are", dislike)
-    alreadyDisliked = "job was disliked"
-
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO UserNotLikeJob(userID, jobID) VALUES (%s, %s)", [userID, dislike])
-            cursor.execute("SELECT * FROM UserNotLikeJob")
-            row = cursor.fetchall()
-            print(row)
-    except:
-        alreadyDisliked = "You have already disliked this job"
-
-
-
-
-
-    return JsonResponse({'message': alreadyDisliked }, safe=False)
-
+    return JsonResponse({'message': "Something to return from liked job"}, safe=False)

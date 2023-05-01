@@ -24,6 +24,5 @@ urlpatterns = [
     path('api/authenticate',send_back_auth, name='authenticate'),
     path('api/writeCompAndInt',write_comp_and_int, name='writeCompAndInt'),
     path('api/likedJob', liked_job, name='likedJob'),
-    path('api/dislikedJob', disliked_job, name='dislikedJob'),
     path('api/authWithToken', auth_with_token, name='authWithToken')
 ]
