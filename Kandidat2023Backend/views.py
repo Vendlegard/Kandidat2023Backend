@@ -219,6 +219,13 @@ def liked_job(request):
     except:
         response = "job was already liked"
 
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM UserNotLikeJob WHERE userID=%s AND jobID=%s", [userID, likes])
+            print("deleted from disliked jobs")
+    except Exception as e:
+        print(e)
+        response = "something went wrong"
 
 
 
@@ -236,7 +243,15 @@ def disliked_job(request):
         with connection.cursor() as cursor:
             cursor.execute("INSERT INTO UserNotLikeJob(userID, jobID) VALUES (%s, %s)", [userID, dislikes])
     except:
-        response = "job was already liked"
+        response = "job was already disliked"
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM UserLikesJob WHERE userID=%s AND jobID=%s", [userID, dislikes])
+            print("deleted from liked jobs")
+    except Exception as e:
+        print(e)
+        response = "something went wrong"
 
     return JsonResponse({'message': response}, safe=False)
 
