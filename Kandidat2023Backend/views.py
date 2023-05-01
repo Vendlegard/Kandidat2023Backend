@@ -145,19 +145,28 @@ def auth_with_token(request):
 def data_view(request):
     print("testar data_view")
 
-def fetch_jobs(request):
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM Job")
 
-        cursor.execute("SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
-                       "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR"
-                         )
+@csrf_exempt
+def fetch_jobs(request):
+    data = json.loads(request.body.decode('utf-8'))
+    user_id = data.get('id')
+    print(user_id, "we got from fetch_jobs")
+
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+                       f"FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
+                       f"WHERE jobID NOT IN (SELECT jobID FROM UserLikesJob WHERE userID = {user_id} UNION SELECT jobID FROM UserNotLikeJob WHERE userID = {user_id})")
+
+
         columns = [col[0] for col in cursor.description]
-        job_list = [
+        liked_jobs = [
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-    return JsonResponse({'jobs': job_list }, safe=False)
+
+    return JsonResponse({'jobs': liked_jobs})
+
+
 
 @csrf_exempt
 def write_comp_and_int(request):
@@ -234,7 +243,8 @@ def disliked_job(request):
 @csrf_exempt
 def fetch_liked_jobs(request):
 
-    user_id = 12;
+    data = json.loads(request.body.decode('utf-8'))
+    user_id = data.get('id')
 
     liked_jobs = []
 
@@ -245,7 +255,6 @@ def fetch_liked_jobs(request):
                            "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
                            "WHERE jobID IN (SELECT jobID FROM UserLikesJob "
                            "WHERE userID = %s)", [user_id])
-            print("hej")
             columns = [col[0] for col in cursor.description]
             liked_jobs = [
                 dict(zip(columns, row))
@@ -253,5 +262,30 @@ def fetch_liked_jobs(request):
             ]
     except:
         response = "something went wrong fetching the jobs"
-
+        print(response)
     return JsonResponse({'liked_jobs': liked_jobs}, safe=False)
+
+
+@csrf_exempt
+def fetch_disliked_jobs(request):
+    user_id = 12
+
+
+    try:
+        with connection.cursor() as cursor:
+
+            cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+                           "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
+                           "WHERE jobID IN (SELECT jobID FROM UserNotLikeJob "
+                           "WHERE userID = %s)", [user_id])
+            print("hej")
+            columns = [col[0] for col in cursor.description]
+            disliked_jobs = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+    except:
+        response = "something went wrong fetching the jobs"
+        print(response)
+        
+    return JsonResponse({'jobs': disliked_jobs }, safe=False)

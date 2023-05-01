@@ -26,5 +26,6 @@ urlpatterns = [
     path('api/likedJob', liked_job, name='likedJob'),
     path('api/dislikedJob', disliked_job, name='dislikedJob'),
     path('api/fetchLikedJobs', fetch_liked_jobs, name='likedJobs'),
+    path('api/fetchDislikedJobs', fetch_disliked_jobs, name='dislikedJobs'),
     path('api/authWithToken', auth_with_token, name='authWithToken')
 ]
