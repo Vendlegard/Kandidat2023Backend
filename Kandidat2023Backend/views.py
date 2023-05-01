@@ -230,3 +230,28 @@ def disliked_job(request):
         response = "job was already liked"
 
     return JsonResponse({'message': response}, safe=False)
+
+@csrf_exempt
+def fetch_liked_jobs(request):
+
+    user_id = 12;
+
+    liked_jobs = []
+
+    try:
+        with connection.cursor() as cursor:
+
+            cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+                           "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
+                           "WHERE jobID IN (SELECT jobID FROM UserLikesJob "
+                           "WHERE userID = %s)", [user_id])
+            print("hej")
+            columns = [col[0] for col in cursor.description]
+            liked_jobs = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+    except:
+        response = "something went wrong fetching the jobs"
+
+    return JsonResponse({'liked_jobs': liked_jobs}, safe=False)

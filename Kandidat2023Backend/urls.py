@@ -25,5 +25,6 @@ urlpatterns = [
     path('api/writeCompAndInt',write_comp_and_int, name='writeCompAndInt'),
     path('api/likedJob', liked_job, name='likedJob'),
     path('api/dislikedJob', disliked_job, name='dislikedJob'),
+    path('api/fetchLikedJobs', fetch_liked_jobs, name='likedJobs'),
     path('api/authWithToken', auth_with_token, name='authWithToken')
 ]
