@@ -6,3 +6,4 @@ staticfiles/
 db.sqlite3
 /Kandidat2023Backend/settings.py
 /.idea/
+/Kandidat2023Backend/importFromExcel.py
