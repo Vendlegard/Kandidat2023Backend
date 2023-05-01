@@ -268,7 +268,11 @@ def fetch_liked_jobs(request):
 
 @csrf_exempt
 def fetch_disliked_jobs(request):
-    user_id = 12
+    data = json.loads(request.body.decode('utf-8'))
+    user_id = data.get('id')
+
+
+    print("fetch disliked jobs")
 
 
     try:
@@ -278,14 +282,12 @@ def fetch_disliked_jobs(request):
                            "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
                            "WHERE jobID IN (SELECT jobID FROM UserNotLikeJob "
                            "WHERE userID = %s)", [user_id])
-            print("hej")
             columns = [col[0] for col in cursor.description]
             disliked_jobs = [
                 dict(zip(columns, row))
                 for row in cursor.fetchall()
             ]
+            return JsonResponse({'disliked_jobs': disliked_jobs}, safe=False)
     except:
         response = "something went wrong fetching the jobs"
-        print(response)
-        
-    return JsonResponse({'jobs': disliked_jobs }, safe=False)
+        return JsonResponse({'message': response}, safe=False)
