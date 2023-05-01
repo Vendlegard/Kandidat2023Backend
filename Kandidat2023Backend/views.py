@@ -203,6 +203,4 @@ def liked_job(request):
     userID = data.get('id')
     likes = data.get('liked')
 
-    print("The user with id ", userID, "and the likes are", likes)
-
     return JsonResponse({'message': "Something to return from liked job"}, safe=False)
