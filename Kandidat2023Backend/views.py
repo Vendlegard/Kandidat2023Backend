@@ -145,11 +145,12 @@ def auth_with_token(request):
 def data_view(request):
     print("testar data_view")
 
+@csrf_exempt
 def fetch_jobs(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM Job")
 
-        cursor.execute("SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+        cursor.execute("SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription, Employer.employerImage "
                        "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR"
                          )
         columns = [col[0] for col in cursor.description]
@@ -189,6 +190,29 @@ def write_comp_and_int(request):
             )
 
     return JsonResponse({'message': data}, safe=False)
+@csrf_exempt
+def get_comp(request):
+    data = json.loads(request.body.decode('utf-8'))
+    email = data.get('email')
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT userID FROM User WHERE userEmail=%s", [email])
+        userToSelect = cursor.fetchone()
+        print(userToSelect)
+
+        cursor.execute("SELECT Competence.compName FROM Competence "
+                       "WHERE compID IN "
+                       "(SELECT DISTINCT compID FROM UserCompetence WHERE userID=%s", [userToSelect]
+                       )
+
+        columns = [col[0] for col in cursor.description]
+        comp_list = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        print(comp_list)
+    return JsonResponse({'selected_comp': comp_list}, safe=False)
+
 
 
 
@@ -206,5 +230,20 @@ def write_liked_job(request):
         )
 
     return JsonResponse({'message': "Something to return from liked job"}, safe=False)
+
+def get_liked(request):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT Job.jobID, Job.jobName, Job.location,Job.jobType,Job.jobDescription ,"
+                       "Employer.employerImage FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR WHERE jobID "
+                       "IN (SELECT DISTINCT jobID FROM sys.UserLikes WHERE userID=1 )"
+                       )
+
+        columns = [col[0] for col in cursor.description]
+        job_list = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        print(job_list)
+    return JsonResponse({'liked_jobs': job_list}, safe=False)
 
 
