@@ -145,20 +145,28 @@ def auth_with_token(request):
 def data_view(request):
     print("testar data_view")
 
+
 @csrf_exempt
 def fetch_jobs(request):
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM Job")
+    data = json.loads(request.body.decode('utf-8'))
+    user_id = data.get('id')
+    print(user_id, "we got from fetch_jobs")
 
-        cursor.execute("SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription, Employer.employerImage "
-                       "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR"
-                         )
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+                       f"FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
+                       f"WHERE jobID NOT IN (SELECT jobID FROM UserLikesJob WHERE userID = {user_id} UNION SELECT jobID FROM UserNotLikeJob WHERE userID = {user_id})")
+
+
         columns = [col[0] for col in cursor.description]
-        job_list = [
+        liked_jobs = [
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
-    return JsonResponse({'jobs': job_list }, safe=False)
+
+    return JsonResponse({'jobs': liked_jobs})
+
+
 
 @csrf_exempt
 def write_comp_and_int(request):
@@ -189,61 +197,112 @@ def write_comp_and_int(request):
                 f"INSERT INTO UserCompetence(userID, compID) VALUES ({userToSelectVariable}, {compToAddVariable})"
             )
 
+
+
+
+
+
     return JsonResponse({'message': data}, safe=False)
-@csrf_exempt
-def get_comp(request):
-    data = json.loads(request.body.decode('utf-8'))
-    email = data.get('email')
-
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT userID FROM User WHERE userEmail=%s", [email])
-        userToSelect = cursor.fetchone()
-        print(userToSelect)
-
-        cursor.execute("SELECT Competence.compName FROM Competence "
-                       "WHERE compID IN "
-                       "(SELECT DISTINCT compID FROM UserCompetence WHERE userID=%s", [userToSelect]
-                       )
-
-        columns = [col[0] for col in cursor.description]
-        comp_list = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-        print(comp_list)
-    return JsonResponse({'selected_comp': comp_list}, safe=False)
-
 
 
 
 @csrf_exempt
-def write_liked_job(request):
+def liked_job(request):
     data = json.loads(request.body.decode('utf-8'))
     userID = data.get('id')
     likes = data.get('liked')
+    response = "job was liked"
 
-    print("The user with id ", userID, "and the likes are", likes)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO UserLikesJob(userID, jobID) VALUES (%s, %s)", [userID, likes])
+    except:
+        response = "job was already liked"
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-        f"INSERT INTO UserLikes(userID, jobID) VALUES ({userID}, {likes})"
-        )
-
-    return JsonResponse({'message': "Something to return from liked job"}, safe=False)
-
-def get_liked(request):
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT Job.jobID, Job.jobName, Job.location,Job.jobType,Job.jobDescription ,"
-                       "Employer.employerImage FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR WHERE jobID "
-                       "IN (SELECT DISTINCT jobID FROM sys.UserLikes WHERE userID=1 )"
-                       )
-
-        columns = [col[0] for col in cursor.description]
-        job_list = [
-            dict(zip(columns, row))
-            for row in cursor.fetchall()
-        ]
-        print(job_list)
-    return JsonResponse({'liked_jobs': job_list}, safe=False)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM UserNotLikeJob WHERE userID=%s AND jobID=%s", [userID, likes])
+            print("deleted from disliked jobs")
+    except Exception as e:
+        print(e)
+        response = "something went wrong"
 
 
+
+    return JsonResponse({'message': response}, safe=False)
+
+
+@csrf_exempt
+def disliked_job(request):
+    data = json.loads(request.body.decode('utf-8'))
+    userID = data.get('id')
+    dislikes = data.get('disliked')
+    response = "job was liked"
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO UserNotLikeJob(userID, jobID) VALUES (%s, %s)", [userID, dislikes])
+    except:
+        response = "job was already disliked"
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM UserLikesJob WHERE userID=%s AND jobID=%s", [userID, dislikes])
+            print("deleted from liked jobs")
+    except Exception as e:
+        print(e)
+        response = "something went wrong"
+
+    return JsonResponse({'message': response}, safe=False)
+
+@csrf_exempt
+def fetch_liked_jobs(request):
+
+    data = json.loads(request.body.decode('utf-8'))
+    user_id = data.get('id')
+
+    liked_jobs = []
+
+    try:
+        with connection.cursor() as cursor:
+
+            cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+                           "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
+                           "WHERE jobID IN (SELECT jobID FROM UserLikesJob "
+                           "WHERE userID = %s)", [user_id])
+            columns = [col[0] for col in cursor.description]
+            liked_jobs = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+    except:
+        response = "something went wrong fetching the jobs"
+        print(response)
+    return JsonResponse({'liked_jobs': liked_jobs}, safe=False)
+
+
+@csrf_exempt
+def fetch_disliked_jobs(request):
+    data = json.loads(request.body.decode('utf-8'))
+    user_id = data.get('id')
+
+
+    print("fetch disliked jobs")
+
+
+    try:
+        with connection.cursor() as cursor:
+
+            cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+                           "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
+                           "WHERE jobID IN (SELECT jobID FROM UserNotLikeJob "
+                           "WHERE userID = %s)", [user_id])
+            columns = [col[0] for col in cursor.description]
+            disliked_jobs = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+            return JsonResponse({'disliked_jobs': disliked_jobs}, safe=False)
+    except:
+        response = "something went wrong fetching the jobs"
+        return JsonResponse({'message': response}, safe=False)
