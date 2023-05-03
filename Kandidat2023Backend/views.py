@@ -131,6 +131,7 @@ def auth_with_token(request):
         userID = row[0]
         cursor.execute("SELECT userID, userEmail, firstName, lastName, university, education FROM User WHERE userID=%s", [userID])
         row = cursor.fetchone()
+
         userDataJson = {
             'userID': row[0],
             'userEmail': row[1],
@@ -197,14 +198,34 @@ def write_comp_and_int(request):
                 f"INSERT INTO UserCompetence(userID, compID) VALUES ({userToSelectVariable}, {compToAddVariable})"
             )
 
-
-
-
-
-
     return JsonResponse({'message': data}, safe=False)
+@csrf_exempt
+def get_comp(request):
+    data = json.loads(request.body.decode('utf-8'))
+    user_id = data.get('id')
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT Competence.compName "
+                       f"FROM Competence WHERE compID IN "
+                       f"(SELECT compID FROM UserCompetence WHERE userID = {user_id})")
+        user_comp = [row[0] for row in cursor.fetchall()]
 
+        print(user_comp)
 
+    return JsonResponse({'comp_list': user_comp})
+
+@csrf_exempt
+def get_interest(request):
+    data = json.loads(request.body.decode('utf-8'))
+    user_id = data.get('id')
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT Interests.interestName "
+                       f"FROM Interests WHERE interestID IN "
+                       f"(SELECT interestID FROM UserInterests WHERE userID = {user_id})")
+        user_interest = [row[0] for row in cursor.fetchall()]
+
+        print(user_interest)
+
+    return JsonResponse({'interest_list': user_interest})
 
 @csrf_exempt
 def liked_job(request):
@@ -306,3 +327,4 @@ def fetch_disliked_jobs(request):
     except:
         response = "something went wrong fetching the jobs"
         return JsonResponse({'message': response}, safe=False)
+
