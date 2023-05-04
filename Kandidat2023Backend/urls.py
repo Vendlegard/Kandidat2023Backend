@@ -30,4 +30,5 @@ urlpatterns = [
     path('api/authWithToken', auth_with_token, name='authWithToken'),
     path('api/getComp', get_comp, name='data'),
     path('api/getInterest', get_interest, name='data'),
+    path('api/fetchALLJobs', fetch_all_jobs, name='data'),
 ]

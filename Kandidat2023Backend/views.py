@@ -328,3 +328,15 @@ def fetch_disliked_jobs(request):
         response = "something went wrong fetching the jobs"
         return JsonResponse({'message': response}, safe=False)
 
+
+def fetch_all_jobs(request):
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+                       "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR ")
+        columns = [col[0] for col in cursor.description]
+        all_jobs = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        print(all_jobs)
+    return JsonResponse({'all_jobs': all_jobs}, safe=False)
