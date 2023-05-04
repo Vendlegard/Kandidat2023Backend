@@ -32,4 +32,5 @@ urlpatterns = [
     path('api/getInterest', get_interest, name='data'),
     path('api/fetchAllComp', fetch_all_comp, name='data'),
     path('api/fetchAllInterests', fetch_all_interests, name='data'),
+    path('api/fetchAllJobs', fetch_all_jobs, name='data'),
 ]
