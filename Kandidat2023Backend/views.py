@@ -227,6 +227,25 @@ def get_interest(request):
 
     return JsonResponse({'interest_list': user_interest})
 
+
+@csrf_exempt
+def fetch_all_comp(request):
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT compName FROM Competence")
+        all_comp = [row[0] for row in cursor.fetchall()]
+
+    return JsonResponse({'all_comp': all_comp})
+
+@csrf_exempt
+def fetch_all_interests(request):
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT interestName FROM Interests")
+        all_interests = [row[0] for row in cursor.fetchall()]
+
+    return JsonResponse({'all_interests': all_interests})
+
 @csrf_exempt
 def liked_job(request):
     data = json.loads(request.body.decode('utf-8'))
