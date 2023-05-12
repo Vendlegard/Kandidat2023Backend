@@ -145,7 +145,20 @@ def auth_with_token(request):
 def data_view(request):
     print("testar data_view")
 
-
+@csrf_exempt
+def write_job(request):
+    data = json.loads(request.body.decode('utf-8'))
+    title = data.get('title')
+    type = data.get('type')
+    location = data.get('location')
+    description = data.get('description')
+    with connection.cursor() as cursor:
+            cursor.execute(
+            "INSERT INTO  Job(jobName, jobType, location, description) VALUES (%s, %s, %s, %s)",
+            [title, type, location, description]
+            )
+            response = "job inserted"
+    return JsonResponse({'message': response})
 @csrf_exempt
 def fetch_jobs(request):
     data = json.loads(request.body.decode('utf-8'))
