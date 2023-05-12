@@ -46,12 +46,17 @@ def create_user(request):
     print(f"Email: {email}, Password: {password}, First name: {first_name}, Last name: {last_name}, University: {university}, Education: {education}")
     hashed_password, salt = hash_password(password)
     print(f"Hashed password: {hashed_password}, Salt: {salt}")
-    response = "Hello World!"
     with connection.cursor() as cursor:
-        cursor.execute(
+        cursor.execute("SELECT userEmail FROM User")
+        all_emails = [row[0] for row in cursor.fetchall()]
+        if email in all_emails:
+            response = "already exists"
+        else:
+            cursor.execute(
             "INSERT INTO  User(firstName, lastName, userEmail, passwordHash, education, university, salt) VALUES (%s, %s, %s, %s, %s, %s, %s)",
             [first_name, last_name, email, hashed_password, education, university, salt]
-        )
+            )
+            response = "user created"
     return JsonResponse({'message': response})
 
 def see_users(request): ##just a test function to see if the user is added to the database
@@ -66,13 +71,7 @@ def hash_password(password): ##creating salt and password hash
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hashed_password.decode('utf-8'), salt.decode('utf-8')
 
-def register_user(email, password): ##registering user, putting them into database #Verkar som  denna inte används, men håll än så länge
-    hashed_password, salt = hash_password(password)
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "INSERT INTO  User(userEmail, passwordHash, salt) VALUES (%s, %s, %s)",
-            [email, hashed_password, salt]
-        )
+
 
 
 def authenticate_user(email, password):
@@ -209,8 +208,6 @@ def get_comp(request):
                        f"(SELECT compID FROM UserCompetence WHERE userID = {user_id})")
         user_comp = [row[0] for row in cursor.fetchall()]
 
-        print(user_comp)
-
     return JsonResponse({'comp_list': user_comp})
 
 @csrf_exempt
@@ -222,8 +219,6 @@ def get_interest(request):
                        f"FROM Interests WHERE interestID IN "
                        f"(SELECT interestID FROM UserInterests WHERE userID = {user_id})")
         user_interest = [row[0] for row in cursor.fetchall()]
-
-        print(user_interest)
 
     return JsonResponse({'interest_list': user_interest})
 

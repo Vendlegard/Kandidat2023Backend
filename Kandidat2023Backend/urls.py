@@ -20,7 +20,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/testResponse', create_user, name='data'),
     path('api/fetchJobs', fetch_jobs, name='data'),
-    path('api/register',register_user, name='register'),
     path('api/authenticate',send_back_auth, name='authenticate'),
     path('api/writeCompAndInt',write_comp_and_int, name='writeCompAndInt'),
     path('api/likedJob', liked_job, name='likedJob'),
@@ -32,5 +31,5 @@ urlpatterns = [
     path('api/getInterest', get_interest, name='data'),
     path('api/fetchAllComp', fetch_all_comp, name='data'),
     path('api/fetchAllInterests', fetch_all_interests, name='data'),
-    path('api/fetchAllJobs', fetch_all_jobs, name='data'),
+    path('api/fetchALLJobs', fetch_all_jobs, name='data'),
 ]
