@@ -314,7 +314,7 @@ def fetch_liked_jobs(request):
     try:
         with connection.cursor() as cursor:
 
-            cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+            cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage, Employer.employerEmail "
                            "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
                            "WHERE jobID IN (SELECT jobID FROM UserLikesJob "
                            "WHERE userID = %s)", [user_id])
@@ -341,7 +341,7 @@ def fetch_disliked_jobs(request):
     try:
         with connection.cursor() as cursor:
 
-            cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+            cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage, Employer.employerEmail "
                            "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR "
                            "WHERE jobID IN (SELECT jobID FROM UserNotLikeJob "
                            "WHERE userID = %s)", [user_id])
@@ -358,7 +358,7 @@ def fetch_disliked_jobs(request):
 
 def fetch_all_jobs(request):
     with connection.cursor() as cursor:
-        cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage "
+        cursor.execute(f"SELECT Job.jobID, Job.jobName, Job.location,Job.jobType, Job.jobDescription ,Employer.employerImage, Employer.employerEmail "
                        "FROM Job CROSS JOIN Employer ON Employer.orgNR=Job.orgNR ")
         columns = [col[0] for col in cursor.description]
         all_jobs = [
